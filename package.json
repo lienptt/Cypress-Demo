@@ -1,0 +1,39 @@
+{
+  "devDependencies": {
+    "cypress": "^14.0.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "webpack": "^5.73.0"
+  },
+  "scripts": {
+    "cypress:dashboard": "cypress run --record --key fc0d98cf-0ddc-48e4-b6e6-a7177c395d4d",
+    "cypress:dashboard-loginAPI": "cypress run --spec **/Login_API.cy.js --record --key fc0d98cf-0ddc-48e4-b6e6-a7177c395d4d",
+    "cypress:open": "cypress open",
+    "cypress:open-chrome": "yarn cypress:open --browser chrome --e2e",
+    "cypress:run": "cypress run",
+    "cypress:run:chrome": "cypress run --browser chrome",
+    "cypress:run:firefox": "cypress run --browser firefox",
+    "cypress:run:record": "cypress run --record"
+  },
+  "dependencies": {
+    "18": "^0.0.0",
+    "dotenv": "^16.4.7",
+    "human-signals": "^8.0.0",
+    "moment": "^2.29.4"
+  },
+  "name": "automation",
+  "description": "Project to demo cypress on Rahul Shetty Academy website",
+  "version": "1.0.0",
+  "main": "cypress.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lienptt/Cypress-Demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lienptt/Cypress-Demo/issues"
+  },
+  "homepage": "https://github.com/lienptt/Cypress-Demo#readme"
+}

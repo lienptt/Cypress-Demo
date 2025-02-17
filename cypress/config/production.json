@@ -1,0 +1,6 @@
+{
+  "baseUrl": "https://rahulshettyacademy.com/",
+  "env": {
+    "something": "production"
+  }
+}
