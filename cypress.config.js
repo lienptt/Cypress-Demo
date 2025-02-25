@@ -5,9 +5,10 @@ module.exports = defineConfig({
   requestTimeout: 20000,
   viewportWidth: 1000,
   viewportHeight: 700,
+  video: true,
 
   e2e: {
-    baseUrl: "https://rahulshettyacademy.com/",
+    baseUrl: "https://rahulshettyacademy.com/client",
     experimentalSessionAndOrigin: true,
     setupNodeEvents(on, config) {
       // implement node event listeners here
@@ -18,6 +19,10 @@ module.exports = defineConfig({
 
       return config;
     },
+  },
+
+  env:{
+    dashboardUrl: "/dashboard/dash",
   },
 
   component: {

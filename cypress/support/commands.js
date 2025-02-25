@@ -1,6 +1,7 @@
+
 let LOCAL_STORAGE = {};
 
-const username = Cypress.env("username");
+const username = Cypress.env("email");
 const password = Cypress.env("password");
 
 Cypress.Commands.add("clickRecaptcha", () => {
@@ -14,14 +15,28 @@ Cypress.Commands.add("clickRecaptcha", () => {
 });
 
 // Caching session when logging in via page visit
-Cypress.Commands.add("loginByGUI", (username, password) => {
-  cy.session([username, password], () => {
-    cy.visit(Cypress.env("login_url"));
-    cy.get("input[type='text']").clear().type(username);
-    cy.get("input[type='password']").clear().type(password);
-    cy.get("button[type='submit']").click();
+// Cypress.Commands.add("loginByGUI", (username, password) => {
+//   cy.session([username, password], () => {
+//     cy.visit(Cypress.env("login_url"));
+//     cy.get("input[type='text']").clear().type(username);
+//     cy.get("input[type='password']").clear().type(password);
+//     cy.get("button[type='submit']").click();
+//   });
+// });
+
+Cypress.Commands.add("loginByGUI", () => {
+  cy.session([Cypress.env("email"), Cypress.env("email")], () => {
+    cy.visit(Cypress.env("baseUrl"));
+    cy.get("#userEmail").clear().type(Cypress.env("email"));
+    cy.get("#userPassword").clear().type(Cypress.env("password"));
+    cy.get(".login-btn").click();
+    cy.intercept("POST", `${Cypress.env("apiUrl")}auth/login`).as("login");
+
+    cy.wait("@login").its("response.statusCode").should("eq", 200);
+    cy.url().should("contain", Cypress.env("dashboardUrl"));
   });
-});
+  cy.visit(Cypress.env("baseUrl"))
+})
 
 // Caching session when logging in via API
 Cypress.Commands.add(
@@ -44,27 +59,6 @@ Cypress.Commands.add(
         cy.getCookie("token").should("have.property", "value", token);
       });
     });
-  }
-);
-
-Cypress.Commands.add(
-  "getTotalData",
-  (organization_id, topic, { cacheSession = false } = {}) => {
-    cy.getCookie('token').should('exist').then(token=> {
-      cy.log("Get total data using API")
-      cy.request({
-        method: "POST",
-        url: `${Cypress.env("apidn")}/console/user/total-data`,
-        headers: {
-          Authorization: `VTCCSSO ${token.value}`,
-          'Organization-Id': organization_id
-        },
-        body: {
-          organization_id,
-          topic,
-        },
-      }).then(body => body);
-    })
   }
 );
 

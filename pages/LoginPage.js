@@ -3,7 +3,7 @@ const loginPageUI = new LoginPageUI();
 
 class LoginPage {
   loginUser() {
-    // cy.session(["LoginByGUI with", Cypress.env("email")], () => {
+    cy.session(["LoginByGUI with", Cypress.env("email")], () => {
       cy.visit(Cypress.env("baseUrl"));
       cy.get(loginPageUI.emmailInput).type(Cypress.env("email"));
       cy.get(loginPageUI.passwordInput).type(Cypress.env("password"));
@@ -13,7 +13,8 @@ class LoginPage {
       cy.get("@login").its("response").then((response) => {
         expect(response.statusCode).to.eq(200)
       });
-    // });
+    });
+    cy.visit(Cypress.env("baseUrl") + Cypress.env("dashboardUrl"));
   }
 }
 
