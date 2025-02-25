@@ -1,7 +1,7 @@
 # Cypress-Demo
 
 ## Giới Thiệu
-Dự án này là một hệ thống kiểm thử tự động cho ứng dụng web Demo https://rahulshettyacademy.com/client (mô phỏng trang web Thương mại điện tử, sử dụng Cypress để thực hiện kiểm thử giao diện người dùng.
+Dự án này là một hệ thống kiểm thử tự động cho ứng dụng web Demo https://rahulshettyacademy.com/client (mô phỏng trang web Thương mại điện tử), sử dụng Cypress để thực hiện kiểm thử giao diện người dùng.
 
 ## Cấu Trúc Repo
 - [Xem cấu trúc repo](https://github.com/lienptt/Cypress-Demo)
