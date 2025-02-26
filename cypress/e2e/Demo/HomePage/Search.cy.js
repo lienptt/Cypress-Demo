@@ -1,4 +1,4 @@
-import HomePageUI from "../../../../ui/HomePage";
+import HomePageUI from "../../../../ui/HomePageUI";
 import LoginPageUI from "../../../../ui/LoginPageUI";
 import CommonPage from "../../../../pages/CommonPage";
 
@@ -20,9 +20,9 @@ describe("Filter search items", () => {
         cy.intercept("POST", `${Cypress.env("apiUrl")}/product/get-all-products`).as(
             "getAllProducts"
         );
-        cy.get(loginPageUI.productItems).then(($listProduct) => {
+        cy.get(homePageUI.productItems).then(($listProduct) => {
             if ($listProduct.length > 0) {
-                cy.get(loginPageUI.productName).first().invoke('text').then((productNameText) => {
+                cy.get(homePageUI.productName).first().invoke('text').then((productNameText) => {
                     cy.get(homePageUI.searchNameInput).type(productNameText + "{enter}").then(() => {
                         cy.wait("@getAllProducts").then(({ request, response }) => {
                             expect(request.body.productName).to.eq(productNameText);
@@ -49,7 +49,7 @@ describe("Filter search items", () => {
             "getAllProducts"
         );
 
-        cy.get(loginPageUI.productName).first().invoke('text').then((productNameText) => {
+        cy.get(homePageUI.productName).first().invoke('text').then((productNameText) => {
             const invalidProductname = productNameText + Cypress._.random(1, 100);
             cy.get(homePageUI.searchNameInput).type(invalidProductname + "{enter}").then(() => {
                 cy.wait("@getAllProducts").then(({ request, response }) => {
@@ -83,7 +83,7 @@ describe("Filter search items", () => {
                             expect(responseBody.data[0].productCategory).to.eq(categories[index]);
 
                             // Assert UI list products & response API get-all-products
-                            cy.get(loginPageUI.productItems).then((items) => {
+                            cy.get(homePageUI.productItems).then((items) => {
                                 expect(items.length).to.eq(itemCount)
                             })
                         } else {

@@ -4,31 +4,11 @@ let LOCAL_STORAGE = {};
 const username = Cypress.env("email");
 const password = Cypress.env("password");
 
-Cypress.Commands.add("clickRecaptcha", () => {
-  cy.window().then((win) => {
-    win.document
-      .querySelector("iframe[src*='recaptcha']")
-      // .contentDocument.getElementById("recaptcha-token")
-      .contentDocument.getElementsByName("a-fpu83kjelpvg")
-      .click();
-  });
-});
-
-// Caching session when logging in via page visit
-// Cypress.Commands.add("loginByGUI", (username, password) => {
-//   cy.session([username, password], () => {
-//     cy.visit(Cypress.env("login_url"));
-//     cy.get("input[type='text']").clear().type(username);
-//     cy.get("input[type='password']").clear().type(password);
-//     cy.get("button[type='submit']").click();
-//   });
-// });
-
 Cypress.Commands.add("loginByGUI", () => {
   cy.session([Cypress.env("email"), Cypress.env("email")], () => {
     cy.visit(Cypress.env("baseUrl"));
     cy.get("#userEmail").clear().type(Cypress.env("email"));
-    cy.get("#userPassword").clear().type(Cypress.env("password"));
+    cy.get("#userPassword").clear().type(Cypress.env("password"), { sensitive: true });
     cy.get(".login-btn").click();
     cy.intercept("POST", `${Cypress.env("apiUrl")}auth/login`).as("login");
 
@@ -46,7 +26,7 @@ Cypress.Commands.add(
     cy.session([username, password], () => {
       cy.request({
         method: "POST",
-        url: `${Cypress.env("apidn")}/sso/api/login`,
+        url: `${Cypress.env("apiUrl")}/sso/api/login`,
         body: {
           username,
           password,
@@ -167,3 +147,17 @@ getBySelLike yields elements with a data-test attribute that contains a specifie
 Cypress.Commands.add("getBySelLike", (selector, ...args) => {
   return cy.get(`[data-test*=${selector}]`, ...args);
 });
+
+/* Click element*/
+Cypress.Commands.add("clickElement", ($ele)=>{
+  cy.get($ele).click()
+})
+
+Cypress.Commands.add("clickElementWithIndex", ($ele, index)=>{
+  cy.get($ele).eq(index).click()
+})
+
+/** Assert element is visible */
+Cypress.Commands.add("assertElementVisible", ($ele)=>{
+  cy.get($ele).should("be.visible");
+})

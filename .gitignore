@@ -4,8 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 # Bỏ qua tệp nhạy cảm
-*cypress.env.json
+cypress.env.json
 *user.json
+*.DS_Store
 
 # User-specific files
 *.rsuser

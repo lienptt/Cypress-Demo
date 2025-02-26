@@ -6,7 +6,7 @@ class LoginPage {
     cy.session(["LoginByGUI with", Cypress.env("email")], () => {
       cy.visit(Cypress.env("baseUrl"));
       cy.get(loginPageUI.emmailInput).type(Cypress.env("email"));
-      cy.get(loginPageUI.passwordInput).type(Cypress.env("password"));
+      cy.get(loginPageUI.passwordInput).type(Cypress.env("password"), { sensitive: true });
       cy.get(loginPageUI.loginButton).click();
       cy.url().should("contain", "/dashboard/dash");
       cy.contains(loginPageUI.toastSuccess, "Login Successfully").should("be.visible");
