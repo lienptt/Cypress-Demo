@@ -1,10 +1,12 @@
 import HomePageUI from "../../../../ui/HomePageUI";
 import LoginPageUI from "../../../../ui/LoginPageUI";
 import CommonPage from "../../../../pages/CommonPage";
+import HomePage from "../../../../pages/HomePage";
 
 const homePageUI = new HomePageUI();
 const loginPageUI = new LoginPageUI();
 const commonPage = new CommonPage();
+const homePage = new HomePage();
 const categories = ["fashion", "electronics", "household"];
 
 describe("Filter search items", () => {
@@ -25,16 +27,9 @@ describe("Filter search items", () => {
                 cy.get(homePageUI.productName).first().invoke('text').then((productNameText) => {
                     cy.get(homePageUI.searchNameInput).type(productNameText + "{enter}").then(() => {
                         cy.wait("@getAllProducts").then(({ request, response }) => {
-                            expect(request.body.productName).to.eq(productNameText);
-                            expect(response.statusCode).to.equal(200);
-                            cy.wrap(response.body.data).then(($responseData) => {
-                                if ($responseData.length > 0) {
-                                    expect(response.body.message).to.eq("All Products fetched Successfully");
-                                    expect(response.body.data[0].productName).to.contain(productNameText)
-                                } else if ($responseData <= 0) {
-                                    expect(response.body.message).to.eq("No Products Found");
-                                }
-                            });
+                            homePage.assertSearchSuccess(request, response, productNameText, "All Products fetched Successfully");
+                            expect(response.body.data.length).to.be.greaterThan(0);
+                            expect(response.body.data[0].productName).to.contain(productNameText);
                         });
                     })
                 });
@@ -50,16 +45,12 @@ describe("Filter search items", () => {
         );
 
         cy.get(homePageUI.productName).first().invoke('text').then((productNameText) => {
-            const invalidProductname = productNameText + Cypress._.random(1, 100);
+            const invalidProductname = productNameText + Cypress._.random(1, 100); 
             cy.get(homePageUI.searchNameInput).type(invalidProductname + "{enter}").then(() => {
                 cy.wait("@getAllProducts").then(({ request, response }) => {
-                    expect(response.statusCode).to.equal(200);
-                    expect(request.body.productName).to.eq(invalidProductname);
-                    cy.wrap(response.body.data).then(($responseData) => {
-                        expect(response.body.message).to.eq("No Products Found");
-                        commonPage.assertEleContainTextVisible(loginPageUI.toastErr, "No Products Found");
-                        expect($responseData.length).to.eq(0)
-                    });
+                    homePage.assertSearchSuccess(request, response, invalidProductname, "No Products Found");
+                    expect(response.body.data.length).to.eq(0)
+                    commonPage.assertEleContainTextVisible(loginPageUI.toastErr, "No Products Found");
                 });
             });
         });
@@ -75,21 +66,23 @@ describe("Filter search items", () => {
                 cy.wait("@getAllProducts").then(({ request, response }) => {
                     const responseBody = response.body;
                     // Assert request, response API get-all-products & UI list
-                    expect(response.statusCode).to.eq(200);
-                    expect(request.body.productCategory[0]).to.eq(categories[index])
+                    commonPage.expectStatusCode200(response);
+                    expect(request.body.productCategory[0]).to.eq(categories[index]);
                     cy.wrap(responseBody.count).then((itemCount) => {
                         if (itemCount > 0) {
+                            //Assert total & category response
                             expect((responseBody.data).length).to.eq(itemCount);
                             expect(responseBody.data[0].productCategory).to.eq(categories[index]);
 
-                            // Assert UI list products & response API get-all-products
+                            // Assert UI list products vs response API get-all-products
                             cy.get(homePageUI.productItems).then((items) => {
-                                expect(items.length).to.eq(itemCount)
+                                expect(items.length).to.eq(itemCount);
                             })
                         } else {
+                            // Assert UI & API case list product is empty
                             expect(responseBody.message).to.eq("No Products Found");
                             commonPage.assertEleContainTextVisible(loginPageUI.toastErr, "No Products Found");
-                            expect(responseBody.data.length).to.eq(0)
+                            expect(responseBody.data.length).to.eq(0);
                         }
                     })
                 })

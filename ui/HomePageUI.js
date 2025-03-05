@@ -15,6 +15,7 @@ class HomePageUI{
     countrySelect = "input[placeholder='Select Country']";
     listCountryItems = ".ta-item.list-group-item";
     submitBtn = ".action__submit";
+    ordersBtn = ".btn.btn-custom[routerlink='/dashboard/myorders']"
 }
 
 export default HomePageUI;

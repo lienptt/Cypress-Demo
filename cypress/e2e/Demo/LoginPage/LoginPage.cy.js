@@ -22,7 +22,7 @@ describe("HomePage", () => {
             cy.url().should("contain", "/dashboard/dash");
             commonPage.assertEleContainTextVisible(loginPageUI.toastSuccess, "Login Successfully");
             cy.get("@login").its("response").then((response) => {
-                expect(response.statusCode).to.eq(200)
+                commonPage.expectStatusCode200(response);
             });
         });
 

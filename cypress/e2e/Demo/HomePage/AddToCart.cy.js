@@ -1,13 +1,10 @@
 import HomePageUI from "../../../../ui/HomePageUI";
-import LoginPageUI from "../../../../ui/LoginPageUI";
 import CommonPage from "../../../../pages/CommonPage";
+import HomePage from "../../../../pages/HomePage";
 
 const homePageUI = new HomePageUI();
-const loginPageUI = new LoginPageUI();
+const homePage = new HomePage();
 const commonPage = new CommonPage();
-const CVVCode = Cypress._.random(100,999);
-const nameOnCard = "Cypress Demo Lienptt";
-const cardNumber = "4542 9931 9292 2293";
 
 describe("Add to cart", () => {
     beforeEach('Login with valid account', () => {
@@ -23,34 +20,19 @@ describe("Add to cart", () => {
             "getAllProducts"
         );
 
+        cy.intercept("GET", `${Cypress.env("apiUrl")}/order/get-orders-for-customer/67603773e2b5443b1ff5b05e`).as(
+            "getOrdersForCustomer"
+        );
+
         cy.loginByGUI();
     })
 
     it('TC_01 Add product to cart', () => {
         cy.wait("@getAllProducts").its('response').then((response) => {
-            const responseBody = response.body.data;
+            const allProductsResponseData = response.body.data;
             cy.get(homePageUI.productItems).then(($listProduct) => {
                 if ($listProduct.length > 0) {
-                    cy.get(homePageUI.productName).first().invoke('text').then((productNameText) => {
-                        const getProductInfo = responseBody.find(item => item.productName === productNameText);
-                        cy.get(homePageUI.productItems + homePageUI.addToCartBtn).first().click();
-                        cy.wait("@addToCart").then(({ request, response }) => {
-                            // Assert add to cart success
-                            expect(response.statusCode).to.eq(200);
-                            expect(response.body.message).to.eq("Product Added To Cart");
-                            commonPage.assertEleContainTextVisible(loginPageUI.toastSuccess, "Product Added To Cart");
-                            expect(request.body.product._id).to.eq(getProductInfo._id);
-                            expect(request.body.product.productName).to.eq(productNameText);
-
-                            // Assert product info in cart
-                            cy.get(homePageUI.cartBtn).click().then(() => {
-                                cy.url().should('contain', "/dashboard/cart");
-                                cy.get(homePageUI.cartInfoSection + homePageUI.itemNumber).should("contain", getProductInfo._id);
-                                cy.get(homePageUI.cartInfoSection + " h3").should("have.text", productNameText);
-                            })
-                        })
-
-                    });
+                    homePage.addToCart(allProductsResponseData);
                 } else {
                     this.skip();
                 }
@@ -58,45 +40,67 @@ describe("Add to cart", () => {
         });
     });
 
-    it('TC_02 Buy product', () => {
-        cy.get(homePageUI.productItems).then(($listProduct) => {
-            if ($listProduct.length > 0) {
-                cy.get(homePageUI.productItems + homePageUI.addToCartBtn).first().click();
-                cy.wait("@addToCart").then(({ response }) => {
-                    // Assert add to cart success
-                    expect(response.statusCode).to.eq(200);
-                    expect(response.body.message).to.eq("Product Added To Cart");
+    it('TC_02 Place an order', () => {
+        cy.wait("@getAllProducts").its('response').then((response) => {
+            const allProductsResponseData = response.body.data;
+            cy.get(homePageUI.productItems).then(($listProduct) => {
+                if ($listProduct.length > 0) {
+                    homePage.addToCart(allProductsResponseData);
+                    homePage.placeOrder();
+                } else {
+                    this.skip();
+                }
+            });
+        });
+    });
 
-                    // Assert product info in cart
-                    cy.get(homePageUI.cartBtn).click().then(() => {
-                        cy.url().should('contain', "/dashboard/cart");
-                        cy.get(homePageUI.buyNowBtn).first().click();
-                        cy.url().should('contain', "/order");
-                        cy.assertElementVisible(homePageUI.paymentInfoSection);
-                        cy.get(homePageUI.cardNumberInput).clear().type(`${cardNumber}`+"{enter}");
-                        const monthRandom = Cypress._.random(0, 11);
-                        const dateRandom = Cypress._.random(0, 30);
-                        cy.get(homePageUI.expiryDateDropdown).eq(0).select(monthRandom);
-                        cy.get(homePageUI.expiryDateDropdown).eq(1).select(dateRandom);
-                        cy.contains(".title", "CVV Code ").parent().then(($ele) => {
-                            cy.wrap($ele).find("input").type(CVVCode);
-                        })
 
-                        cy.contains(".title", "Name on Card ").parent().then(($ele) => {
-                            cy.wrap($ele).find("input").type(nameOnCard);
-                        })
+    it('TC_03 View & delete list order', () => {
+        cy.get(homePageUI.ordersBtn).click().then(() => {
+            cy.url().should("contain", "/dashboard/myorders");
+            cy.wait("@getOrdersForCustomer").its("response").then((response) => {
+                commonPage.expectStatusCode200(response);
+                cy.wrap(response.body.data).then((responseData) => {
+                    const orderCount = responseData.length;
+                    if (orderCount > 0) {
+                        // Assert for rule Maximum order count: 7
+                        expect(response.body.count).not.to.be.greaterThan(7);
+                    } else if (orderCount <= 0) {
+                        cy.log("Don't have any order => add to cart & order")
+                        // Redirect to Dasboard & place an order
+                        commonPage.redirectToTab("");
+                        cy.wait("@getAllProducts").its('response').then((response) => {
+                            const allProductsResponseData = response.body.data;
+                            cy.get(homePageUI.productItems).then(($listProduct) => {
+                                if ($listProduct.length > 0) {
+                                    homePage.addToCart(allProductsResponseData);
+                                    commonPage.redirectToTab("cart");
+                                    homePage.placeOrder();
+                                } else {
+                                    this.skip();
+                                }
+                            })
+                        });
+                    }
 
-                        cy.get(homePageUI.userNameInput).clear().type(Cypress.env("email"));
-                        cy.get(homePageUI.countrySelect).type("Vietnam{enter}");
-                        cy.clickElementWithIndex(homePageUI.listCountryItems, 0)
-                        cy.clickElement(homePageUI.submitBtn)
-                        cy.url().should("contain", "/thanks");
-                        commonPage.assertEleContainTextVisible(".hero-primary", "Thankyou for the order. ");
-                    })
-                })
-            } else {
-                this.skip();
-            }
-        })
+                    // Delete order
+                    commonPage.redirectToTab("myorders");
+                    cy.wrap(".table .ng-star-inserted").then(($body)=>{
+                        cy.get($body + " [scope='row']").first().invoke("text").then((firstOrderId)=>{
+                            cy.intercept("DELETE", `${Cypress.env("apiUrl")}/order/delete-order/` + `${firstOrderId}`).as(
+                                "deleteOrder"
+                            );
+                            cy.contains($body + " .btn-danger", "Delete").first().click();
+                            cy.wait("@deleteOrder").its("response").then((response)=>{
+                                commonPage.expectStatusCode200(response);
+                                // Assert UI toast & list not contain deleted order
+                                expect(response.body.message).to.eq("Orders Deleted Successfully");
+                                cy.contains($body + " [scope='row']", firstOrderId).should("not.exist");
+                            });
+                        });
+                    });
+                });
+            });
+        });
     });
 });
